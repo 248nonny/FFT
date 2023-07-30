@@ -15,18 +15,25 @@ Graph::~Graph() {
 }
 
 void Graph::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height) {
+    static bool run_before;
+
+    if (!run_before) {
+        cr->set_line_cap(Cairo::Context::LineCap::ROUND);
+    }
+
     grid.width = width;
     grid.height = height;
 
-    cr->set_line_width(grid.thin_line_width);
-    cr->set_source_rgba(grid.grid_line_rgba[0],grid.grid_line_rgba[1],grid.grid_line_rgba[2],grid.grid_line_rgba[3]);
+    
     find_trnfrm();
 
     // printf("%f\n",grid.trnfrm[1](0));
 
     // cr->move_to(grid.trnfrm[0](grid.xstart), grid.trnfrm[1](grid.ystart));
     // cr->line_to(grid.trnfrm[0](grid.xstop), grid.trnfrm[0](grid.ystop));
-    test_trnfrm(cr);
+    // test_trnfrm(cr);
+    get_grid_lines();
+    draw_lines(cr);
     cr->stroke();
 }
 
@@ -46,7 +53,89 @@ void Graph::find_trnfrm() {
 
 void Graph::get_grid_lines() {
 
+    // find main log x lines.
+    float logdiff = log10((double)grid.xstop / (double)grid.xstart);
+
+    grid.main_x_line_count = ceil(logdiff);
+
+    for (int i = 0; i < grid.main_x_line_count; i++) {
+        grid.main_x_lines[i] = pow(10, ceil(log10(grid.xstart))) * pow(10, i);
+        // printf("BL: %d\n",(int)grid.main_x_lines[i]);
+    }
+
+    // find sub x lines.
+    grid.sub_x_line_count = 0;
+
+    short int firstPow = ceil(log10(grid.xstart));
+    short int lastPow = floor(log10(grid.xstop));
+
+    // first we loop thru and find the leftmost lines (to the left of the first big line):
+    for (int i = 0; i < 10; i++) {
+        double val = pow(10,firstPow) - (i + 1) * pow(10, firstPow - 1);
+
+        if (val >= grid.xstart) {
+            grid.sub_x_lines[i] = val;
+            // printf("val: %f\n",val);
+        } else {
+            grid.sub_x_line_count = i;
+            break;
+        }
+    }
+
+    // now we add 8 multiples (of sub lines) for each main x line (except the last):
+    for (int i = 0; i < grid.main_x_line_count - 1; i++) {
+        double &mVal = grid.main_x_lines[i];
+
+
+        // why did I write this? great question. am re-reading it now, and no clue tbh :P
+        // I guess I'll just leave it here lol
+        if (mVal == 0) {
+            break;
+        }
+
+        for (int i = 0; i < 8; i++) {
+            grid.sub_x_lines[grid.sub_x_line_count] = mVal * (i + 2);
+            grid.sub_x_line_count++;
+        }
+    }
+
+    // now we get the values after the last big line:
+    for (int i = 0; i < 10; i++) {
+        double val = pow(10,lastPow) + (i + 1) * pow(10,lastPow);
+
+        if (val <= grid.xstop) {
+            grid.sub_x_lines[grid.sub_x_line_count] = val;
+            grid.sub_x_line_count++;
+        } else {
+            break;
+        }
+    }
+
+
+
+    // now for the y lines :o
+    int ydiff = grid.ystop - grid.ystart;
+    grid.main_y_line_count = (((int)(ydiff*1000) % (int)(grid.main_y_line_increment*1000)) == 0 && (int)(grid.ystart*1000)%(int)(grid.main_y_line_increment*1000) == 0) ? floor((float)ydiff/(float)grid.main_y_line_increment) + 1 : floor((float)ydiff/(float)grid.main_y_line_increment);
+
+    //main y lines:
+    for (int i = 0; i < grid.main_y_line_count; i++) {
+        grid.main_y_lines[i] = grid.ystart + i * grid.main_y_line_increment;
+    }
+
+
+    // sub y lines:
+    for (int i = 0; i < grid.main_y_line_count * grid.y_line_subdiv; i++) {
+        double val = grid.ystart + i * ((float)grid.main_y_line_increment/(float)grid.y_line_subdiv);
+        if ((int)(val*1000)%(int)(grid.main_y_line_increment * 1000) == 0 && val <= grid.ystop) {
+            grid.sub_y_lines[i] = val;
+        } else {
+            grid.sub_y_line_count = i;
+            break;
+        }
+    }
 }
+
+
 
 void Graph::test_trnfrm(const Cairo::RefPtr<Cairo::Context>& cr) {
 
@@ -63,4 +152,46 @@ void Graph::test_trnfrm(const Cairo::RefPtr<Cairo::Context>& cr) {
 
     cr->stroke();
 
+}
+
+void Graph::draw_lines(const Cairo::RefPtr<Cairo::Context>& cr) {
+
+    cr->set_source_rgba(grid.grid_line_rgba[0],grid.grid_line_rgba[1],grid.grid_line_rgba[2],grid.grid_line_rgba[3]);
+
+    // draw main x lines
+    for (int i = 0; i < grid.main_x_line_count; i++) {
+        draw_v_line(cr, grid.main_x_lines[i]);
+    }
+
+    // draw main y lines
+    for (int i = 0; i < grid.main_y_line_count; i++) {
+        draw_h_line(cr, grid.main_y_lines[i]);
+    }
+
+    cr->set_line_width(grid.thick_line_width);
+    cr->stroke();
+
+
+    //draw sub x lines
+    for (int i = 0; i < grid.sub_x_line_count; i++) {
+        draw_v_line(cr, grid.sub_x_lines[i]);
+    }
+
+    // draw sub y lines
+    for (int i = 0; i < grid.sub_y_line_count; i++) {
+        draw_h_line(cr, grid.sub_y_lines[i]);
+    }
+
+    cr->set_line_width(grid.thin_line_width);
+    cr->stroke();
+}
+
+void Graph::draw_v_line(const Cairo::RefPtr<Cairo::Context>& cr, double x) {
+    cr->move_to(grid.trnfrm[0](x), grid.trnfrm[1](grid.ystart));
+    cr->line_to(grid.trnfrm[0](x), grid.trnfrm[1](grid.ystop));
+}
+
+void Graph::draw_h_line(const Cairo::RefPtr<Cairo::Context>& cr, double y) {
+    cr->move_to(grid.trnfrm[0](grid.xstart), grid.trnfrm[1](y));
+    cr->line_to(grid.trnfrm[0](grid.xstop), grid.trnfrm[1](y));
 }

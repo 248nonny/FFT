@@ -24,9 +24,19 @@ struct Grid {
     int ystop = 25;
 
     double main_x_lines[MAX_MAIN_LINE_COUNT]; // main lines determine tick marks, sub lines are for visuals only.
+    int main_x_line_count = 0;
+
     double sub_x_lines[MAX_SUB_LINE_COUNT];
+    int sub_x_line_count = 0;
+
     double main_y_lines[MAX_MAIN_LINE_COUNT];
+    int main_y_line_count = 0;
+
     double sub_y_lines[MAX_SUB_LINE_COUNT];
+    int sub_y_line_count = 0;
+
+    double main_y_line_increment = 25;
+    double y_line_subdiv = 5;
 
     int pads[4] = {16,35,35,50}; // goes like compass, element 0 is up, 1 is right, 2 is down, 3 is left.
     // int pads[4] = {0,0,0,0};
@@ -37,7 +47,7 @@ struct Grid {
     float grid_line_rgba[4] = {0.7,0.7,0.7, 0.6};
     int text_offset = 1;
     int text_angle = 30;
-    int thick_line_width = 5;
+    int thick_line_width = 4;
     int thin_line_width = 2;
 };
 
@@ -55,4 +65,8 @@ protected:
     void get_grid_lines();
     void find_trnfrm();
     void test_trnfrm(const Cairo::RefPtr<Cairo::Context>& cr);
+    void draw_lines(const Cairo::RefPtr<Cairo::Context>& cr);
+    
+    void draw_v_line(const Cairo::RefPtr<Cairo::Context>& cr, double x);
+    void draw_h_line(const Cairo::RefPtr<Cairo::Context>& cr, double x);
 };

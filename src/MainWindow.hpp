@@ -9,11 +9,13 @@ class MainWindow : public Gtk::Window {
 public:
     MainWindow();
 
-    Gtk::Frame frame;
+    Gtk::Frame graph_frames[3];
+
+    Gtk::Box fft_box;
 
     Gtk::Box main_v_box;
 
-    Graph graph;
+    Graph graphs[3];
 
     Gtk::Button bottom_buttons[BOTTOM_BUTTON_COUNT];
     Glib::ustring bottom_button_labels[BOTTOM_BUTTON_COUNT] = {"1","2","3","4"};

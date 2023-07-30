@@ -14,9 +14,14 @@ MainWindow::MainWindow()
 
     bottom_button_box.set_halign(Gtk::Align::CENTER);
 
-    frame.set_margin_bottom(0);
-    frame.set_child(graph);
-    main_v_box.append(frame);
+
+    for (int i = 0; i < 3; i ++) {
+        graph_frames[i].set_child(graphs[i]);
+        graph_frames[i].set_margin(5);
+        fft_box.append(graph_frames[i]);
+    }
+
+    main_v_box.append(fft_box);
     main_v_box.append(bottom_button_box);
     
 
