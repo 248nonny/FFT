@@ -1,6 +1,7 @@
 #pragma once
 
 #include <gtkmm.h>
+#include "Graph.hpp"
 
 #define BOTTOM_BUTTON_COUNT 4
 
@@ -11,6 +12,8 @@ public:
     Gtk::Frame frame;
 
     Gtk::Box main_v_box;
+
+    Graph graph;
 
     Gtk::Button bottom_buttons[BOTTOM_BUTTON_COUNT];
     Glib::ustring bottom_button_labels[BOTTOM_BUTTON_COUNT] = {"1","2","3","4"};

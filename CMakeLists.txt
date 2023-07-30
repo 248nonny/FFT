@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.26.1)
 
 project(FFT)
 
-set(USER_EXECUTABLES src/MainWindow.cpp)
+set(USER_EXECUTABLES src/MainWindow.cpp src/Graph.cpp)
 
 
 find_package(PkgConfig REQUIRED)
