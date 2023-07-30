@@ -14,7 +14,9 @@ MainWindow::MainWindow()
 
     bottom_button_box.set_halign(Gtk::Align::CENTER);
 
-    main_v_box.append(graph);
+    frame.set_margin_bottom(0);
+    frame.set_child(graph);
+    main_v_box.append(frame);
     main_v_box.append(bottom_button_box);
     
 
