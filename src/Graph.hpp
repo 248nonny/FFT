@@ -38,15 +38,15 @@ struct Grid {
     double main_y_line_increment = 25;
     double y_line_subdiv = 5;
 
-    int pads[4] = {16,35,35,50}; // goes like compass, element 0 is up, 1 is right, 2 is down, 3 is left.
+    int pads[4] = {16,16,50,50}; // goes like compass, element 0 is up, 1 is right, 2 is bottom, 3 is left.
     // int pads[4] = {0,0,0,0};
 
     std::function<double(double)> trnfrm[2]; // first element is x trnfm, second is y.
 
-    int fontsize = 14;
+    int fontsize = 12;
     float grid_line_rgba[4] = {0.7,0.7,0.7, 0.6};
-    int text_offset = 1;
-    int text_angle = 30;
+    int text_offset = 10;
+    int text_angle = 60;
     int thick_line_width = 4;
     int thin_line_width = 2;
 };

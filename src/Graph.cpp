@@ -2,6 +2,7 @@
 #include "Graph.hpp"
 #include <gtkmm/drawingarea.h>
 #include <cmath>
+#include <string>
 
 Graph::Graph() {
     set_vexpand(true);
@@ -157,20 +158,30 @@ void Graph::test_trnfrm(const Cairo::RefPtr<Cairo::Context>& cr) {
 void Graph::draw_lines(const Cairo::RefPtr<Cairo::Context>& cr) {
 
     cr->set_source_rgba(grid.grid_line_rgba[0],grid.grid_line_rgba[1],grid.grid_line_rgba[2],grid.grid_line_rgba[3]);
+    cr->set_font_size(grid.fontsize);
 
     // draw main x lines
     for (int i = 0; i < grid.main_x_line_count; i++) {
-        draw_v_line(cr, grid.main_x_lines[i]);
+        double &x = grid.main_x_lines[i];
+        draw_v_line(cr, x);
+        
+        cr->move_to(grid.trnfrm[0](x) - 6, grid.trnfrm[1](grid.ystart) + grid.text_offset);
+        cr->rotate_degrees(grid.text_angle);
+        cr->show_text(std::to_string((int)x));
+        cr->rotate_degrees(-grid.text_angle);
     }
 
     // draw main y lines
     for (int i = 0; i < grid.main_y_line_count; i++) {
-        draw_h_line(cr, grid.main_y_lines[i]);
+        double y = grid.main_y_lines[i];
+        draw_h_line(cr, y);
+        cr->move_to(grid.xstart - grid.text_offset,grid.trnfrm[1](y) + 0.3 * grid.fontsize);
+        cr->show_text(std::to_string((int)y));
+
     }
 
     cr->set_line_width(grid.thick_line_width);
     cr->stroke();
-
 
     //draw sub x lines
     for (int i = 0; i < grid.sub_x_line_count; i++) {
