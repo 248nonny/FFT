@@ -5,6 +5,9 @@
 #include <string>
 
 Graph::Graph() {
+
+    reset_data();
+
     set_vexpand(true);
     set_hexpand(true);
     set_margin(0);
@@ -16,26 +19,45 @@ Graph::~Graph() {
 }
 
 void Graph::on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height) {
-    static bool run_before;
 
-    if (!run_before) {
-        cr->set_line_cap(Cairo::Context::LineCap::ROUND);
-    }
 
     grid.width = width;
     grid.height = height;
 
-    
-    find_trnfrm();
+    if (!grid.runbefore) {
+        find_trnfrm();
+        get_grid_lines();
 
-    // printf("%f\n",grid.trnfrm[1](0));
+        cr->set_line_cap(Cairo::Context::LineCap::ROUND);
+        make_log_data();
+        // make_linear_data();
+        sort_data_x();
+    }
 
-    // cr->move_to(grid.trnfrm[0](grid.xstart), grid.trnfrm[1](grid.ystart));
-    // cr->line_to(grid.trnfrm[0](grid.xstop), grid.trnfrm[0](grid.ystop));
-    // test_trnfrm(cr);
-    get_grid_lines();
-    draw_lines(cr);
+
+
+    if (grid.prev_height != height || grid.prev_width !=width) {
+
+        find_trnfrm();
+
+        // printf("%f\n",grid.trnfrm[1](0));
+
+        // cr->move_to(grid.trnfrm[0](grid.xstart), grid.trnfrm[1](grid.ystart));
+        // cr->line_to(grid.trnfrm[0](grid.xstop), grid.trnfrm[0](grid.ystop));
+        // test_trnfrm(cr);
+        get_grid_lines();
+    }
+    draw_grid_lines(cr);
     cr->stroke();
+
+    // reset_data();
+    // make_random_data();
+    plot_data(cr);
+    cr->stroke();
+
+    if (!grid.runbefore) {
+        grid.runbefore = true;
+    }
 }
 
 void Graph::find_trnfrm() {
@@ -53,6 +75,9 @@ void Graph::find_trnfrm() {
 }
 
 void Graph::get_grid_lines() {
+
+    grid.prev_height = grid.height;
+    grid.prev_width = grid.width;
 
     // find main log x lines.
     float logdiff = log10((double)grid.xstop / (double)grid.xstart);
@@ -155,7 +180,7 @@ void Graph::test_trnfrm(const Cairo::RefPtr<Cairo::Context>& cr) {
 
 }
 
-void Graph::draw_lines(const Cairo::RefPtr<Cairo::Context>& cr) {
+void Graph::draw_grid_lines(const Cairo::RefPtr<Cairo::Context>& cr) {
 
     cr->set_source_rgba(grid.grid_line_rgba[0],grid.grid_line_rgba[1],grid.grid_line_rgba[2],grid.grid_line_rgba[3]);
     cr->set_font_size(grid.fontsize);
@@ -205,4 +230,114 @@ void Graph::draw_v_line(const Cairo::RefPtr<Cairo::Context>& cr, double x) {
 void Graph::draw_h_line(const Cairo::RefPtr<Cairo::Context>& cr, double y) {
     cr->move_to(grid.trnfrm[0](grid.xstart), grid.trnfrm[1](y));
     cr->line_to(grid.trnfrm[0](grid.xstop), grid.trnfrm[1](y));
+}
+
+
+void Graph::plot_data(const Cairo::RefPtr<Cairo::Context>& cr) {
+    
+    cr->set_line_width(grid.data_line_width);
+    cr->set_source_rgba(grid.data_line_rgba[0],grid.data_line_rgba[1],grid.data_line_rgba[2],grid.data_line_rgba[3]);
+
+    // cr->move_to(0, 0);
+    cr->move_to(grid.trnfrm[0](data[0][0]),grid.trnfrm[1](data[0][1]));
+
+    for (int i = 0; i < data.size(); i++) {
+        
+        double x = grid.trnfrm[0](data[i][0]);
+        double y = grid.trnfrm[1](data[i][1]);
+        cr->line_to(x, y);
+    }
+    
+
+    cr->stroke();
+}
+
+void Graph::make_random_data() {
+    
+
+
+    for (int i = 0; i < data.size(); i++) {
+        
+        data[i][0] = rand() % (int)(grid.xstop - grid.xstart) + grid.xstart;
+        data[i][1] = rand() % (int)(grid.ystop - grid.ystart) + grid.ystart;
+    }
+    
+}
+
+void Graph::make_log_data() {
+
+    double a = (double)(grid.ystop - grid.ystart) / log10(grid.xstop/grid.xstart);
+    double b = grid.ystart - a * log10(grid.xstart);
+
+    double c = (double)(grid.xstop - grid.xstart) / (pow(10,data.size()));
+    double d = grid.xstart - c;
+
+    for (int i = 0; i < data.size(); i++) {
+        double &x = data[i][0] = c * pow(10,i + 1) + d;
+        data[i][1] = a * log10(x) + b;
+    }
+}
+
+void Graph::make_linear_data() {
+    double a = (double)(grid.ystop-grid.ystart)/(grid.xstop - grid.xstart);
+    double b = grid.ystart - a * grid.xstart;
+
+    double c = (double)(grid.xstop - grid.xstart) / (pow(10,data.size()));
+    double d = grid.xstart - c;    
+
+    for (int i = 0; i < data.size(); i++) {
+        double &x = data[i][0] = c * pow(10,i + 1) + d;
+        data[i][1] = a * x + b;
+    }
+}
+
+void Graph::reset_data() {
+    
+    data.clear();
+    data.resize(DEFAULT_TEST_DATA_SIZE);
+    for (int i = 0; i < data.size(); i++) {
+        data[i] = {0,0};
+    }
+    
+}
+
+void Graph::sort_data_x() {
+    GraphData tempData;
+    tempData.resize(data.size());
+
+    for (int i = 0; i < data.size(); i++) {
+        tempData[i].resize(data[i].size());
+        for (int j = 0; j < data[0].size(); j++) {
+            tempData[i][j] = data[i][j];
+        }
+    }
+
+    reset_data();
+    
+    for (int i = 0; i < tempData.size(); i ++) {
+    	
+        if (i == 0) {
+        	data[i][0] = tempData[i][0];
+        	data[i][1] = tempData[i][1];
+            
+        } else {
+        	for (int ii = i; ii >= 0; ii --) {
+            	
+                
+              	if (ii == 0) {
+                	data[ii][0] = tempData[i][0];
+                    data[ii][1] = tempData[i][1];
+                } else if (data[ii - 1][0] > tempData[i][0]) {
+                	data[ii][0] = data[ii - 1][0];
+                    data[ii][1] = data[ii - 1][1];
+                } else {
+                	data[ii][0] = tempData[i][0];
+                    data[ii][1] = tempData[i][1];
+                    break;
+                }
+
+            }
+        }
+        
+    }
 }
