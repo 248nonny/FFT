@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.26.1)
 
 project(FFT)
 
-set(USER_EXECUTABLES src/gtk/MainWindow.cpp src/gtk/Graph.cpp src/FFT/FFTAgent.cpp src/FFT/FFTCommander.cpp)
+set(USER_EXECUTABLES src/gtk/MainWindow.cpp src/gtk/Graph.cpp src/FFT/FFTAgent.cpp src/FFT/FFTCommander.cpp src/FFT/window-functions.cpp)
 
 
 find_package(PkgConfig REQUIRED)

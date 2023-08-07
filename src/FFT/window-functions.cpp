@@ -1,5 +1,6 @@
 #include "window-functions.hpp"
 #include <cmath>
+#include <cstdio>
 
 const char* window_names[WINDOW_COUNT] = {
     "Hann",

@@ -17,6 +17,7 @@ public:
     Gtk::Frame graph_frames[GRAPH_COUNT];
 
     Gtk::Box fft_box;
+    Gtk::Box graph_pkg_box[GRAPH_COUNT];
 
     Gtk::Box main_v_box;
 

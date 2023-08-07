@@ -1,9 +1,13 @@
 #include "FFTCommander.hpp"
+#include "gtkmm/enums.h"
+#include "sigc++/functors/mem_fun.h"
 #include "src/FFT/stream-data.hpp"
+#include "src/FFT/window-functions.hpp"
 #include "src/gtk/Graph.hpp"
 #include <atomic>
 #include <cmath>
 #include <fftw3.h>
+#include <gtkmm.h>
 
 
 #define SIN_TEST_FREQ_COUNT 3
@@ -11,7 +15,35 @@
 FFTCommander::FFTCommander()
 : agent(512)
 {
-    create_sin_data();
+    window_menu_list = Gtk::ListStore::create(window_menu_cols);
+
+    window_function_menu.set_model(window_menu_list);
+
+    auto iter = window_menu_list->append();
+    auto row = *iter;
+
+    window_menu_list->clear();
+
+    for (int i = 0; i < WINDOW_COUNT; i++) {
+        row = *window_menu_list->append();
+        row[window_menu_cols.window_id] = i;
+        row[window_menu_cols.window_name] = window_names[i];
+    }
+
+    // window_function_menu.pack_start(window_menu_cols.window_id);
+    window_function_menu.pack_start(window_menu_cols.window_name);
+
+    window_function_menu.set_hexpand(false);
+    window_function_menu.set_vexpand(false);
+    window_function_menu.set_halign(Gtk::Align::CENTER);
+
+    window_function_menu.set_active(HANN);
+    window_type = HANN;
+
+    window_function_menu.signal_changed().connect(sigc::mem_fun(*this, &FFTCommander::set_window_function_from_menu));
+
+    // create_sin_data();
+    test_window_function(100);
 }
 
 void FFTCommander::create_sin_data() {
@@ -57,4 +89,32 @@ void FFTCommander::create_sin_data() {
     }
 
     graph.write_data(output);
+}
+
+void FFTCommander::test_window_function(int array_size) {
+    GraphData output;
+    allocate_GraphData(array_size, true, output);
+
+    double y[array_size];
+    make_window_array(window_type, y, array_size);
+    for (int i = 0; i < array_size; i ++) {
+        double &xval = output.data[i][0] = i * (1.00/ array_size);
+        double &yval = output.data[i][1] = y[i] * 100;
+        // printf("{x: %f, y:%f}\n",xval,yval);
+    }
+    graph.write_data(output);
+    graph.queue_draw();
+}
+
+
+void FFTCommander::set_window_function_from_menu() {
+    const auto iter = window_function_menu.get_active();
+
+    if (iter) {
+        const auto row = *iter;
+        if (row) {
+            window_type = row[window_menu_cols.window_id];
+        }
+    }
+    test_window_function(99);
 }

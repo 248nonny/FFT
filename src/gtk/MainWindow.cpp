@@ -24,7 +24,10 @@ MainWindow::MainWindow()
     for (int i = 0; i < GRAPH_COUNT; i ++) {
         graph_frames[i].set_child(fft[i].graph);
         graph_frames[i].set_margin(5);
-        fft_box.append(graph_frames[i]);
+        graph_pkg_box[i].append(graph_frames[i]);
+        graph_pkg_box[i].append(fft[i].window_function_menu);
+        graph_pkg_box[i].set_orientation(Gtk::Orientation::VERTICAL);
+        fft_box.append(graph_pkg_box[i]);
     }
 
     main_v_box.append(fft_box);

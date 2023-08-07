@@ -15,6 +15,8 @@
 #define BARTLETT 5
 #define WELCH 6
 
+extern const char* window_names[WINDOW_COUNT];
+
 #pragma endregion
 
 void make_window_array(short int window_type, double * array, int array_size);
