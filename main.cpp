@@ -1,7 +1,7 @@
 #include <gtkmm.h>
 #include <stdio.h>
 
-#include "src/MainWindow.hpp"
+#include "src/gtk/MainWindow.hpp"
 
 
 

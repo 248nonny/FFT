@@ -18,7 +18,11 @@
 
 #include <vector>
 
-using GraphData = std::vector<std::vector<double>>;
+struct GraphData {
+    double **data = NULL;
+    int size = -1;
+};
+
 #define DEFAULT_TEST_DATA_SIZE 50
 
 struct Grid {
@@ -30,10 +34,10 @@ struct Grid {
     int width;
     int height;
 
-    int xstart = 20;
-    int xstop = 20000;
-    int ystart = -125;
-    int ystop = 25;
+    int xstart = 10;
+    int xstop = 30000;
+    int ystart = -40;
+    int ystop = 60;
 
     double main_x_lines[MAX_MAIN_LINE_COUNT]; // main lines determine tick marks, sub lines are for visuals only.
     int main_x_line_count = 0;
@@ -47,8 +51,8 @@ struct Grid {
     double sub_y_lines[MAX_SUB_LINE_COUNT];
     int sub_y_line_count = 0;
 
-    double main_y_line_increment = 25;
-    double y_line_subdiv = 5;
+    double main_y_line_increment = 20;
+    double y_line_subdiv = 4;
 
     int pads[4] = {16,16,50,50}; // goes like compass, element 0 is up, 1 is right, 2 is bottom, 3 is left.
     // int pads[4] = {0,0,0,0};
@@ -69,6 +73,8 @@ struct Grid {
 };
 
 
+void allocate_GraphData(int size, bool set_to_zero,GraphData &data, bool force_allocate = false);
+
 class Graph : public Gtk::DrawingArea {
 public:
     Graph();
@@ -77,6 +83,7 @@ public:
     Grid grid;
     GraphData data;
     int data_index;
+    void write_data(GraphData input_data);
 
 protected:
     void on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
@@ -91,13 +98,13 @@ protected:
     void plot_data(const Cairo::RefPtr<Cairo::Context>& cr);
 
 
+    void allocate_data(int size, bool set_to_zero = false, bool force_allocate = false);
 
     void make_random_data();
     void make_sine_data();
     void make_log_data();
     void make_linear_data();
 
-    void reset_data();
     void sort_data_x();
 };
 
