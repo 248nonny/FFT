@@ -27,6 +27,7 @@ public:
     FFTAgent agent;
     int window_type;
 
+    int frames_per_buffer = 512;
 private:
     int sample_rate = 44000; // Hz
 

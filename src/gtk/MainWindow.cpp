@@ -1,11 +1,30 @@
 #include "MainWindow.hpp"
 #include "gtkmm/enums.h"
 #include "sigc++/functors/mem_fun.h"
+#include "src/AudioHandler/AudioHandler.hpp"
+#include <portaudio.h>
 
+static void checkErr(PaError err) {
+    if (err != paNoError) {
+        printf("PortAudio Error: %s\n", Pa_GetErrorText(err));
+        exit(EXIT_FAILURE);
+    }
+}
 
 MainWindow::MainWindow() 
 : main_v_box(Gtk::Orientation::VERTICAL)
 {
+    Pa_Initialize();
+    // get portaudio device names; we'll store them here and feed to audio handlers individually.
+    get_pa_device_info();
+    print_device_info();
+
+    audio_handler = new AudioHandler;
+
+
+
+
+
     set_title("FFT");
     set_default_size(800, 500);
 
@@ -45,5 +64,38 @@ MainWindow::MainWindow()
 void MainWindow::redraw() {
     for (int i = 0; i < GRAPH_COUNT; i++) {
         fft[i].graph.queue_draw();
+    }
+}
+
+void MainWindow::get_pa_device_info() {
+    device_count = Pa_GetDeviceCount();
+    printf("%d devices detected by portaudio.\n",device_count);
+
+    if (device_count < 0) {
+        printf("Error getting device count.\n");
+        exit(EXIT_FAILURE);
+    } else if (device_count == 0) {
+        printf("There are no available audio devices on this machine.");
+        Pa_Terminate();
+        exit(EXIT_SUCCESS);
+    }
+
+    device_info.resize(device_count);
+
+    for (int i = 0; i < device_count; i++) {
+        const PaDeviceInfo* deviceInfo = Pa_GetDeviceInfo(i);
+        if (deviceInfo != nullptr) {
+            device_info[i] = deviceInfo;
+        }
+    }
+}
+
+void MainWindow::print_device_info() {
+    for (int i = 0; i < device_info.size(); i++) {
+        printf("Device: %d\n",i);
+        printf("   Name: %s\n",device_info[i]->name);
+        printf("   max input channels: %d\n",device_info[i]->maxInputChannels);
+        printf("   max output channels: %d\n",device_info[i]->maxOutputChannels);
+        printf("   default sample rate: %f\n", device_info[i]->defaultSampleRate);
     }
 }

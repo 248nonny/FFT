@@ -1,7 +1,7 @@
 #include "FFTCommander.hpp"
 #include "gtkmm/enums.h"
 #include "sigc++/functors/mem_fun.h"
-#include "src/FFT/stream-data.hpp"
+#include "src/AudioHandler/stream-data.hpp"
 #include "src/FFT/window-functions.hpp"
 #include "src/gtk/Graph.hpp"
 #include <atomic>
@@ -47,7 +47,7 @@ FFTCommander::FFTCommander()
 }
 
 void FFTCommander::create_sin_data() {
-    double period = FRAMES_PER_BUFFER * (1.000/sample_rate);
+    double period = frames_per_buffer * (1.000/sample_rate);
     // printf("sample period: %f\n",period);
     double minfreq = (double)1/period;
     // printf("min f: %f\n",minfreq);
@@ -83,8 +83,8 @@ void FFTCommander::create_sin_data() {
     allocate_GraphData(agent.transform_size/2 + 1, true, output);
 
     for (int i = 0; i < agent.transform_size/2 + 1; i++) {
-        double &x = output.data[i][0] = (double)i * sample_rate / FRAMES_PER_BUFFER;
-        double &y = output.data[i][1] = 20 * log10(sqrt(pow(agent.out[i][0],2) + pow(agent.out[i][1],2)) / FRAMES_PER_BUFFER);
+        double &x = output.data[i][0] = (double)i * sample_rate / frames_per_buffer;
+        double &y = output.data[i][1] = 20 * log10(sqrt(pow(agent.out[i][0],2) + pow(agent.out[i][1],2)) / frames_per_buffer);
         // printf("x: %f, y: %f\n",x,y);
     }
 

@@ -2,7 +2,7 @@
 
 #include <fftw3.h>
 #include <functional>
-#include "stream-data.hpp"
+#include "src/AudioHandler/stream-data.hpp"
 
 class FFTAgent {
 public:
