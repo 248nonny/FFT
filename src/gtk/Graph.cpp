@@ -3,10 +3,11 @@
 #include <gtkmm/drawingarea.h>
 #include <cmath>
 #include <string>
+#include <glog/logging.h>
 
 Graph::Graph() {
 
-    allocate_data(DEFAULT_TEST_DATA_SIZE,true, true);
+    // allocate_data(DEFAULT_TEST_DATA_SIZE,true, true);
     // printf("lakaka\n");
     set_vexpand(true);
     set_hexpand(true);
@@ -14,10 +15,6 @@ Graph::Graph() {
     set_size_request(grid.pads[PAD_LEFT] + grid.pads[PAD_RIGHT], grid.pads[PAD_TOP] + grid.pads[PAD_BOTTOM]);
     set_draw_func(sigc::mem_fun(*this, &Graph::on_draw));
 
-    if (grid.x_type == LINEAR) {
-        grid.xstart = 0;
-        grid.xstop = 1;
-    }
 }
 
 Graph::~Graph() {
@@ -71,7 +68,7 @@ void Graph::find_trnfrm() {
     // for x:
     long double a,b;
 
-    if (grid.x_type == LOG) {
+    if (grid.x_type == LOGARITHMIC) {
         a = (double)(grid.width - grid.pads[PAD_LEFT] - grid.pads[PAD_RIGHT]) / (log10(grid.xstop) - log10(grid.xstart));
         b = grid.pads[PAD_LEFT] - a * log10(grid.xstart);
         grid.trnfrm[0] = [a,b](double xval) {return a * log10(xval) + b;};
@@ -95,7 +92,7 @@ void Graph::get_grid_lines() {
     grid.prev_width = grid.width;
 
 
-    if (grid.x_type == LOG) {
+    if (grid.x_type == LOGARITHMIC) {
 
         // find main log x lines.
         float logdiff = log10((double)grid.xstop / (double)grid.xstart);
@@ -307,111 +304,132 @@ void Graph::draw_h_line(const Cairo::RefPtr<Cairo::Context>& cr, double y) {
 
 
 void Graph::plot_data(const Cairo::RefPtr<Cairo::Context>& cr) {
-    double range = (grid.xstop - grid.xstart) * 0.01;
+    DLOG(INFO) << "\nplotting graph data. number of data sets: " << data.size();
+    for (int i = 0; i < data.size(); i++) {
+        double range = (grid.xstop - grid.xstart) * 0.01;
 
-    if (data.size > 0) {
-        cr->set_line_width(grid.data_line_width);
-        cr->set_source_rgba(grid.data_line_rgba[0],grid.data_line_rgba[1],grid.data_line_rgba[2],grid.data_line_rgba[3]);
+        DLOG(INFO) << "plotting data set " << i+1 << "/" << data.size() << " of size " << data[i].size();
 
-        // cr->move_to(0, 0);
-        for (int i = 0; i < data.size; i++) {
-            cr->move_to(grid.trnfrm[0](data.data[i][0]),grid.trnfrm[1](data.data[i][1]));
-            if (data.data[i][0] >= grid.xstart - range*0.01 && data.data[i][0] <= grid.xstop && data.data[i][1] >= grid.ystart && data.data[i][1] <= grid.ystop) {
-                break;
-            } // what you should be doing is drawing a line to the edge of the graph and then break;-ing. find slope and stuff?
-        }     // also, this should probably happen in pre-processing; one array is the raw data, one is the data to plot, that way
-              // we don't have to recalculate the slope stuff every time.
-        for (int i = 0; i < data.size; i++) {
+        if (data[i].size() > 0) {
+            cr->set_line_width(grid.data_line_width);
+            int rgba_i = i % NUM_COLOURS;
+            printf("rgba_i: %d, r:%f, g:%f, b:%f, a:%f\n\n",rgba_i,grid.data_line_rgba[rgba_i][0],grid.data_line_rgba[rgba_i][1],grid.data_line_rgba[rgba_i][2],grid.data_line_opacity);
             
-            double x = grid.trnfrm[0](data.data[i][0]);
-            double y = grid.trnfrm[1](data.data[i][1]);
-            
-            if (data.data[i][0] > grid.xstart && data.data[i][0] < grid.xstop && data.data[i][1] > grid.ystart && data.data[i][1] < grid.ystop) {
-                cr->line_to(x, y);
+            cr->set_source_rgba(grid.data_line_rgba[rgba_i][0],grid.data_line_rgba[rgba_i][1],grid.data_line_rgba[rgba_i][2],grid.data_line_opacity);
+
+            // cr->move_to(0, 0);
+            DLOG(INFO) << "data exists in this data set. finding first plottable point.";
+            for (int j = 0; j < data[i].size(); j++) {
+                DLOG(INFO) << "moving to point " << j << ", which has values x:" << data[i][j][0] << ", y:" << data[i][j][1] << ".";
+                cr->move_to(grid.trnfrm[0](data[i][j][0]),grid.trnfrm[1](data[i][j][1]));
+                if (data[i][j][0] >= grid.xstart - range*0.01 && data[i][j][0] <= grid.xstop && data[i][j][1] >= grid.ystart && data[i][j][1] <= grid.ystop) {
+                    break;
+                } // what you should be doing is drawing a line to the edge of the graph and then break;-ing. find slope and stuff?
+            }     // also, this should probably happen in pre-processing; one array is the raw data, one is the data to plot, that way
+                // we don't have to recalculate the slope stuff every time.
+            for (int j = 0; j < data[i].size(); j++) {
+                double x = grid.trnfrm[0](data[i][j][0]);
+                double y = grid.trnfrm[1](data[i][j][1]);
+                // DLOG(INFO) << "plotting point #" << j << " with values {" << data[i][j][0] << ", " << data[i][j][1] << "}.";
+                
+                if (data[i][j][0] >= grid.xstart && data[i][j][0] <= grid.xstop && data[i][j][1] >= grid.ystart && data[i][j][1] <= grid.ystop) {
+                    cr->line_to(x, y);
+                } else {
+                    break;
+                }
             }
+            cr->stroke();
+            
+
         }
-        
-
-        cr->stroke();
     }
+
+    cr->stroke();
+    DLOG(INFO) << "graph data plotted successfully.";
 }
 
-void Graph::make_random_data() {
-    
-    allocate_data(DEFAULT_TEST_DATA_SIZE);
+void Graph::make_random_data(int data_slot) {
+    DLOG(INFO) << "making random data for graph in data slot " << data_slot << ".";
+    // allocate_data(DEFAULT_TEST_DATA_SIZE);
+    data[data_slot].resize(DEFAULT_TEST_DATA_SIZE);
 
-    for (int i = 0; i < data.size; i++) {
+    for (int i = 0; i < data[data_slot].size(); i++) {
         
-        data.data[i][0] = rand() % (int)(grid.xstop - grid.xstart) + grid.xstart;
-        data.data[i][1] = rand() % (int)(grid.ystop - grid.ystart) + grid.ystart;
+        data[data_slot][i][0] = rand() % (int)(grid.xstop - grid.xstart) + grid.xstart;
+        data[data_slot][i][1] = rand() % (int)(grid.ystop - grid.ystart) + grid.ystart;
     }
     
 }
 
-void Graph::make_log_data() {
+void Graph::make_log_data(int data_slot) {
+    DLOG(INFO) << "making log data for graph in data slot " << data_slot << ".";
 
-    allocate_data(DEFAULT_TEST_DATA_SIZE);
+    // allocate_data(DEFAULT_TEST_DATA_SIZE);
+    data[data_slot].resize(DEFAULT_TEST_DATA_SIZE);
 
     double a = (double)(grid.ystop - grid.ystart) / log10(grid.xstop/grid.xstart);
     double b = grid.ystart - a * log10(grid.xstart);
 
-    double c = (double)(grid.xstop - grid.xstart) / (pow(10,data.size));
+    double c = (double)(grid.xstop - grid.xstart) / (pow(10,data[data_slot].size()));
     double d = grid.xstart - c;
 
-    for (int i = 0; i < data.size; i++) {
-        double &x = data.data[i][0] = c * pow(10,i + 1) + d;
-        data.data[i][1] = a * log10(x) + b;
+    for (int i = 0; i < data[data_slot].size(); i++) {
+        double &x = data[data_slot][i][0] = c * pow(10,i + 1) + d;
+        data[data_slot][i][1] = a * log10(x) + b;
     }
 }
 
-void Graph::make_linear_data() {
-    allocate_data(DEFAULT_TEST_DATA_SIZE);
+void Graph::make_linear_data(int data_slot) {
+    DLOG(INFO) << "making linear data for graph in data slot " << data_slot << ".";
+    // allocate_data(DEFAULT_TEST_DATA_SIZE);
+    data[data_slot].resize(DEFAULT_TEST_DATA_SIZE);
     double a = (double)(grid.ystop-grid.ystart)/(grid.xstop - grid.xstart);
     double b = grid.ystart - a * grid.xstart;
 
-    double c = (double)(grid.xstop - grid.xstart) / (pow(10,data.size));
+    double c = (double)(grid.xstop - grid.xstart) / (pow(10,data[data_slot].size()));
     double d = grid.xstart - c;    
 
-    for (int i = 0; i < data.size; i++) {
-        double &x = data.data[i][0] = c * pow(10,i + 1) + d;
-        data.data[i][1] = a * x + b;
+    for (int i = 0; i < data[data_slot].size(); i++) {
+        double &x = data[data_slot][i][0] = c * pow(10,i + 1) + d;
+        data[data_slot][i][1] = a * x + b;
     }
 }
 
 
 
-void Graph::sort_data_x() {
-    GraphData tempData;
-    allocate_GraphData(data.size, true, tempData);
-
-    for (int i = 0; i < data.size; i++) {
-        // tempData.data[i].resize(data.data[i].size());
+void Graph::sort_data_x(int data_slot) {
+    DLOG(INFO) << "sorting data in slot " << data_slot << " by x axis value.";
+    GraphDataSet tempData;
+    tempData.resize(DEFAULT_TEST_DATA_SIZE);
+    for (int i = 0; i < data[data_slot].size(); i++) {
+        // tempData.data[i].resize(data[data_slot][i].size());
         for (int j = 0; j < 1; j++) {
-            tempData.data[i][j] = data.data[i][j];
+            tempData[i][j] = data[data_slot][i][j];
         }
     }
 
-    allocate_data(DEFAULT_TEST_DATA_SIZE,true);
+    // allocate_data(DEFAULT_TEST_DATA_SIZE,true);
+    data[data_slot].resize(DEFAULT_TEST_DATA_SIZE);
     
-    for (int i = 0; i < tempData.size; i ++) {
+    for (int i = 0; i < tempData.size(); i ++) {
     	
         if (i == 0) {
-        	data.data[i][0] = tempData.data[i][0];
-        	data.data[i][1] = tempData.data[i][1];
+        	data[data_slot][i][0] = tempData[i][0];
+        	data[data_slot][i][1] = tempData[i][1];
             
         } else {
         	for (int ii = i; ii >= 0; ii --) {
             	
                 
               	if (ii == 0) {
-                	data.data[ii][0] = tempData.data[i][0];
-                    data.data[ii][1] = tempData.data[i][1];
-                } else if (data.data[ii - 1][0] > tempData.data[i][0]) {
-                	data.data[ii][0] = data.data[ii - 1][0];
-                    data.data[ii][1] = data.data[ii - 1][1];
+                	data[data_slot][ii][0] = tempData[i][0];
+                    data[data_slot][ii][1] = tempData[i][1];
+                } else if (data[data_slot][ii - 1][0] > tempData[i][0]) {
+                	data[data_slot][ii][0] = data[data_slot][ii - 1][0];
+                    data[data_slot][ii][1] = data[data_slot][ii - 1][1];
                 } else {
-                	data.data[ii][0] = tempData.data[i][0];
-                    data.data[ii][1] = tempData.data[i][1];
+                	data[data_slot][ii][0] = tempData[i][0];
+                    data[data_slot][ii][1] = tempData[i][1];
                     break;
                 }
 
@@ -419,38 +437,25 @@ void Graph::sort_data_x() {
         }
         
     }
+    DLOG(INFO) << "Success.";
 }
 
-void Graph::write_data(GraphData input_data) {
-    allocate_data(input_data.size);
-    for (int i = 0; i < input_data.size; i++) {
-        double &x = data.data[i][0] = input_data.data[i][0];
-        double &y = data.data[i][1] = input_data.data[i][1];
-        // printf("x: %f, y: %f\n",x,y);
+void Graph::write_data(GraphDataSet input_data, int data_slot) {
+    DLOG(INFO) << "writing graph data in slot " << data_slot << ".";
 
-    }
-}
-
-void Graph::allocate_data(int size, bool set_to_zero, bool force_allocate) {
-    allocate_GraphData(size, set_to_zero, data, force_allocate);
-}
-
-
-void allocate_GraphData(int size, bool set_to_zero, GraphData &data, bool force_allocate) {
-    int &prev_size = data.size;
-    if (size != prev_size || force_allocate) {
-        if (data.data != NULL) {
-            delete data.data;
-        }
-        data.data = new double *[size];
+    if (data.size() < data_slot + 1) {
+        data.resize(data_slot + 1);
     }
 
-    for (int i = 0; i < size; i++) {
-        data.data[i] = new double[2];
-        if (set_to_zero) {
-           data.data[i][0] = 0;
-           data.data[i][1] = 0;
-        }
+    data[data_slot].resize(0);
+    data[data_slot].reserve(input_data.size());
+    for (int i = 0; i < input_data.size(); i++) {
+        data[data_slot].push_back({input_data[i][0], input_data[i][1]});
+        // printf("x: %f, y: %f\n",input_data[i][0],input_data[i][1]); // for testing 
     }
-    prev_size = size;
+    DLOG(INFO) << "data written successfully.";
 }
+
+// void Graph::allocate_data(int size, bool set_to_zero, bool force_allocate) {
+//     allocate_GraphData(size, set_to_zero, data, force_allocate);
+// }

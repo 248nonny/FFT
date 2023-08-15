@@ -16,8 +16,11 @@ static void checkErr(PaError err) {
 }
 
 AudioHandler::AudioHandler() {
-    // initialize portaudio
-    PaError err = Pa_Initialize();
+}
+
+void AudioHandler::initialize() {
+    // portaudio should be initialized before calling this.
+    // PaError err = Pa_Initialize();
     checkErr(err);
 
     // set amog values to output parameters. is this really necessary? who knows :P

@@ -16,15 +16,24 @@
 #define PAD_BOTTOM 2
 #define PAD_LEFT 3
 
-#define LOG 0
+#define LOGARITHMIC 0
 #define LINEAR 1
+
+#define NUM_COLOURS 5
 
 #include <vector>
 
-struct GraphData {
-    double **data = NULL;
-    int size = -1;
-};
+
+// - data (contains datasets)
+// --- dataset (contains x,y pairs)
+// ----- x,y pair (double)
+using GraphDataSet = std::vector<std::vector<double>>;
+using GraphData = std::vector<GraphDataSet>;
+
+
+// struct GraphData {
+//     std::vector<std::vector<std::vector<double>>> data;
+// };
 
 #define DEFAULT_TEST_DATA_SIZE 50
 
@@ -39,10 +48,11 @@ struct Grid {
     int width;
     int height;
 
-    int xstart = 10;
-    int xstop = 30000;
-    int ystart = -40;
-    int ystop = 100;
+    // NOTE I just changed the types to float, errors may occur :P
+    float xstart = 0;
+    float xstop = 1;
+    float ystart = -40;
+    float ystop = 100;
 
     double main_x_lines[MAX_MAIN_LINE_COUNT]; // main lines determine tick marks, sub lines are for visuals only.
     int main_x_line_count = 0;
@@ -74,7 +84,18 @@ struct Grid {
     float grid_line_rgba[4] = {0.7,0.7,0.7, 0.6};
 
     float data_line_width = 2;
-    float data_line_rgba[4] = {1,0.27058,0,0.7};
+
+    float data_line_opacity = 0.7;
+
+    // std::vector<std::vector<float>> data_line_rgba = {
+    const double data_line_rgba[NUM_COLOURS][3] = {
+        {1,0.27058,0}, // orange-y
+        {0.114, 0.929, 0}, //green
+        {0, 0.914, 0.929},
+        {0.604, 0, 0.929},
+        {0.929, 0, 0}
+    };
+    // float data_line_rgba[4] = {1,0.27058,0,0.7};
 
     int text_offset = 10;
     int text_angle = 60;
@@ -93,7 +114,7 @@ public:
     Grid grid;
     GraphData data;
     int data_index;
-    void write_data(GraphData input_data);
+    void write_data(GraphDataSet input_data, int data_slot = 0);
 
 protected:
     void on_draw(const Cairo::RefPtr<Cairo::Context>& cr, int width, int height);
@@ -108,13 +129,11 @@ protected:
     void plot_data(const Cairo::RefPtr<Cairo::Context>& cr);
 
 
-    void allocate_data(int size, bool set_to_zero = false, bool force_allocate = false);
+    void make_random_data(int data_slot = 0);
+    void make_sine_data(int data_slot = 0);
+    void make_log_data(int data_slot = 0);
+    void make_linear_data(int data_slot = 0);
 
-    void make_random_data();
-    void make_sine_data();
-    void make_log_data();
-    void make_linear_data();
-
-    void sort_data_x();
+    void sort_data_x(int data_slot);
 };
 

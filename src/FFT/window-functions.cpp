@@ -1,6 +1,7 @@
 #include "window-functions.hpp"
 #include <cmath>
 #include <cstdio>
+#include <glog/logging.h>
 
 const char* window_names[WINDOW_COUNT] = {
     "Hann",
@@ -24,6 +25,7 @@ std::function<double (int, int)> window_function[WINDOW_COUNT] = {
 
 
 void make_window_array(short int window_type, double * array, int array_size) {
+    DLOG(INFO) << "making window array of type " << window_names[window_type] << ", and size " << array_size << ".";
     for (int i = 0; i < array_size; i++) {
         array[i] = window_function[window_type](array_size,i);
     }

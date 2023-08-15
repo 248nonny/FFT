@@ -2,7 +2,9 @@
 #include "gtkmm/enums.h"
 #include "sigc++/functors/mem_fun.h"
 #include "src/AudioHandler/AudioHandler.hpp"
+#include <cstdio>
 #include <portaudio.h>
+#include <glog/logging.h>
 
 static void checkErr(PaError err) {
     if (err != paNoError) {
@@ -14,17 +16,29 @@ static void checkErr(PaError err) {
 MainWindow::MainWindow() 
 : main_v_box(Gtk::Orientation::VERTICAL)
 {
+    // printf("amog\n");
+    DLOG(INFO) << "Constructing main window.";
+
+
+    // note: figure out how to supress PA warnings on init.
+    // DLOG(INFO) << "note: PA_Initialize not printing errors; change code if this is necessary.";
+    // fclose(stderr);
+    printf("\n\n");
     Pa_Initialize();
+    printf("\n\n");
+    // fopen(stderr, "a");
     // get portaudio device names; we'll store them here and feed to audio handlers individually.
     get_pa_device_info();
-    print_device_info();
+    // print_device_info(); // uncomment to see devices and properties in command line.
 
-    audio_handler = new AudioHandler;
+    //
+    // DLOG(INFO) << "creating AudioHandler object.";
+    // audio_handler = new AudioHandler;
 
 
 
 
-
+    DLOG(INFO) << "setting window properties and setting up main window buttons.";
     set_title("FFT");
     set_default_size(800, 500);
 
@@ -34,12 +48,11 @@ MainWindow::MainWindow()
     }
 
     bottom_buttons[0].set_label("Redraw");
-
     bottom_buttons[0].signal_clicked().connect(sigc::mem_fun(*this, &MainWindow::redraw));
-
     bottom_button_box.set_halign(Gtk::Align::CENTER);
 
 
+    DLOG(INFO) << "setting up graphs and related widgets.";
     for (int i = 0; i < GRAPH_COUNT; i ++) {
         graph_frames[i].set_child(fft[i].graph);
         graph_frames[i].set_margin(5);
@@ -58,18 +71,21 @@ MainWindow::MainWindow()
     set_child(main_v_box);
 
     // frame.set_child(main_v_box);
-
+    DLOG(INFO) << "finished constructing Main Window.";
 }
 
 void MainWindow::redraw() {
+    DLOG(INFO) << "redrawing graphs...";
     for (int i = 0; i < GRAPH_COUNT; i++) {
         fft[i].graph.queue_draw();
     }
+    DLOG(INFO) << "done.";
 }
 
 void MainWindow::get_pa_device_info() {
+    DLOG(INFO) << "getting PA device info.";
     device_count = Pa_GetDeviceCount();
-    printf("%d devices detected by portaudio.\n",device_count);
+    DLOG(INFO) << device_count << " devices detected by portaudio.";
 
     if (device_count < 0) {
         printf("Error getting device count.\n");
@@ -91,6 +107,7 @@ void MainWindow::get_pa_device_info() {
 }
 
 void MainWindow::print_device_info() {
+    DLOG(INFO) << "printing device info.";
     for (int i = 0; i < device_info.size(); i++) {
         printf("Device: %d\n",i);
         printf("   Name: %s\n",device_info[i]->name);

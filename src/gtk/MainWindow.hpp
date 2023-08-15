@@ -7,6 +7,7 @@
 #include <portaudio.h>
 #include <vector>
 
+
 #define BOTTOM_BUTTON_COUNT 4
 
 #define GRAPH_COUNT 3
@@ -19,7 +20,7 @@ public:
 private:
     FFTCommander fft[GRAPH_COUNT];
 
-    AudioHandler *audio_handler;
+    AudioHandler audio_handler;
 
     Gtk::Frame graph_frames[GRAPH_COUNT];
 

@@ -8,6 +8,7 @@
 #include <cmath>
 #include <fftw3.h>
 #include <gtkmm.h>
+#include <glog/logging.h>
 
 
 #define SIN_TEST_FREQ_COUNT 3
@@ -15,10 +16,12 @@
 FFTCommander::FFTCommander()
 : agent(512)
 {
+    DLOG(INFO) << "constructing FFT Commander.";
+
+
+    DLOG(INFO) << "creating drop-down window function things.";
     window_menu_list = Gtk::ListStore::create(window_menu_cols);
-
     window_function_menu.set_model(window_menu_list);
-
     auto iter = window_menu_list->append();
     auto row = *iter;
 
@@ -30,6 +33,8 @@ FFTCommander::FFTCommander()
         row[window_menu_cols.window_name] = window_names[i];
     }
 
+    DLOG(INFO) << "setting window function drop-down properties.";
+
     // window_function_menu.pack_start(window_menu_cols.window_id);
     window_function_menu.pack_start(window_menu_cols.window_name);
 
@@ -40,9 +45,11 @@ FFTCommander::FFTCommander()
     window_function_menu.set_active(HANN);
     window_type = HANN;
 
+    DLOG(INFO) << "connecting window function drop-down menu callback function.";
     window_function_menu.signal_changed().connect(sigc::mem_fun(*this, &FFTCommander::set_window_function_from_menu));
 
     // create_sin_data();
+    DLOG(INFO) << "testing window function.";
     test_window_function(100);
 }
 
@@ -79,12 +86,11 @@ void FFTCommander::create_sin_data() {
 
     agent.execute_fft();
 
-    GraphData output;
-    allocate_GraphData(agent.transform_size/2 + 1, true, output);
+    GraphDataSet output;
 
     for (int i = 0; i < agent.transform_size/2 + 1; i++) {
-        double &x = output.data[i][0] = (double)i * sample_rate / frames_per_buffer;
-        double &y = output.data[i][1] = 20 * log10(sqrt(pow(agent.out[i][0],2) + pow(agent.out[i][1],2)) / frames_per_buffer);
+        double &x = output[i][0] = (double)i * sample_rate / frames_per_buffer;
+        double &y = output[i][1] = 20 * log10(sqrt(pow(agent.out[i][0],2) + pow(agent.out[i][1],2)) / frames_per_buffer);
         // printf("x: %f, y: %f\n",x,y);
     }
 
@@ -92,17 +98,22 @@ void FFTCommander::create_sin_data() {
 }
 
 void FFTCommander::test_window_function(int array_size) {
-    GraphData output;
-    allocate_GraphData(array_size, true, output);
+    DLOG(INFO) << "testing window function of size " << array_size << ".";
+    GraphDataSet output;
+    output.reserve(array_size);
+    
 
     double y[array_size];
     make_window_array(window_type, y, array_size);
+    DLOG(INFO) << "writing test window values to output GraphDataSet.";
     for (int i = 0; i < array_size; i ++) {
-        double &xval = output.data[i][0] = i * (1.00/ array_size);
-        double &yval = output.data[i][1] = y[i] * 100;
+        output.push_back({i * (1.00/ array_size), y[i] * 100});
+        // double &xval = output[i][0] = i * (1.00/ array_size);
+        // double &yval = output[i][1] = y[i] * 100;
         // printf("{x: %f, y:%f}\n",xval,yval);
     }
     graph.write_data(output);
+    DLOG(INFO) << "queuing graph redraw";
     graph.queue_draw();
 }
 
