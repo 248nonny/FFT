@@ -4,6 +4,8 @@
 #include <functional>
 #include "src/AudioHandler/stream-data.hpp"
 
+namespace FFT {
+
 class FFTAgent {
 public:
     FFTAgent(int transform_size);
@@ -17,3 +19,5 @@ public:
 
 private:
 };
+
+}

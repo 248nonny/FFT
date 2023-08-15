@@ -3,7 +3,8 @@
 #include <gtkmm.h>
 #include "Graph.hpp"
 #include "src/AudioHandler/AudioHandler.hpp"
-#include "src/FFT/FFTCommander.hpp"
+#include "src/FFT-Interface/FFT2GTKInterface.hpp"
+// #include "src/FFT/FFTCommander.hpp"
 #include <portaudio.h>
 #include <vector>
 
@@ -18,7 +19,8 @@ public:
     std::vector<const PaDeviceInfo*> device_info;
     int device_count;
 private:
-    FFTCommander fft[GRAPH_COUNT];
+    // FFTCommander fft[GRAPH_COUNT];
+    FFT::FFT2GTKInterface fft[GRAPH_COUNT];
 
     AudioHandler audio_handler;
 

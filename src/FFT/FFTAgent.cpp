@@ -1,6 +1,8 @@
 #include "FFTAgent.hpp"
 #include <fftw3.h>
 
+namespace FFT {
+
 FFTAgent::FFTAgent(int transform_size) {
     this->transform_size = transform_size;
     in = (double*) fftw_malloc(sizeof(double) * transform_size);
@@ -28,4 +30,6 @@ void FFTAgent::write_func_data(std::function<double(double)> *func, int func_arr
             // printf("i: %d, val: %f\n",i,in[i]);
         }
     }
+}
+
 }

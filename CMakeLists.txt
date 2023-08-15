@@ -2,8 +2,10 @@ cmake_minimum_required(VERSION 3.26.1)
 
 project(FFT)
 
-set(USER_EXECUTABLES src/GTK/MainWindow.cpp src/GTK/Graph.cpp src/FFT/FFTAgent.cpp src/FFT/FFTCommander.cpp src/FFT/window-functions.cpp src/AudioHandler/AudioHandler.cpp)
-
+set(USER_EXECUTABLES src/GTK/MainWindow.cpp src/GTK/Graph.cpp)
+set(USER_EXECUTABLES ${USER_EXECUTABLES} src/FFT/FFTAgent.cpp src/FFT/FFTCommander.cpp src/FFT/window-functions.cpp)
+set(USER_EXECUTABLES ${USER_EXECUTABLES} src/FFT-Interface/FFTInterface.cpp src/FFT-Interface/FFT2GTKInterface.cpp)
+set(USER_EXECUTABLES ${USER_EXECUTABLES} src/AudioHandler/AudioHandler.cpp)
 
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(GTKMM gtkmm-4.0)
