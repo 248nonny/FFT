@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.26.1)
 
 project(FFT)
 
-set(USER_EXECUTABLES src/gtk/MainWindow.cpp src/gtk/Graph.cpp src/FFT/FFTAgent.cpp src/FFT/FFTCommander.cpp src/FFT/window-functions.cpp src/AudioHandler/AudioHandler.cpp)
+set(USER_EXECUTABLES src/GTK/MainWindow.cpp src/GTK/Graph.cpp src/FFT/FFTAgent.cpp src/FFT/FFTCommander.cpp src/FFT/window-functions.cpp src/AudioHandler/AudioHandler.cpp)
 
 
 find_package(PkgConfig REQUIRED)

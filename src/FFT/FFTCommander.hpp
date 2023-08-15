@@ -1,5 +1,5 @@
 #pragma once
-#include "../gtk/Graph.hpp"
+#include "src/GTK/Graph.hpp"
 #include <gtkmm.h>
 #include "FFTAgent.hpp"
 #include "window-functions.hpp"

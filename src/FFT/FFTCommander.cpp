@@ -3,7 +3,7 @@
 #include "sigc++/functors/mem_fun.h"
 #include "src/AudioHandler/stream-data.hpp"
 #include "src/FFT/window-functions.hpp"
-#include "src/gtk/Graph.hpp"
+#include "src/GTK/Graph.hpp"
 #include <atomic>
 #include <cmath>
 #include <fftw3.h>

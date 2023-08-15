@@ -3,7 +3,7 @@
 #include <portaudio.h>
 #include <signal.h>
 
-#include "src/gtk/MainWindow.hpp"
+#include "src/GTK/MainWindow.hpp"
 #include <glog/logging.h>
 #include <gflags/gflags.h>
 
