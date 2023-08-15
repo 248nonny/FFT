@@ -6,8 +6,6 @@
 // I used float because PortAudio's output is float32, which is same resolution as float. can change if necessary, but I doubt it will be (past self owes you $20 if you have to change it) :P
 using AudioBuffer = std::vector<std::vector<std::vector<float>>>;
 
-
-
 typedef struct {
     // middle size will be of audio buffer size (per channel?)
     // hmmmm how should I integrate channels? add another layer of nesting >:) not cursed lmao.
@@ -18,7 +16,7 @@ typedef struct {
     // ----- chunk vector (contains double values)
     // ------- raw double value
     //
-    // so for example, audio_buffer[0][3][7] is the 8th value of the 4th chunk of the 1st channel.
+    // so for example, audio_buffer[0][3][7] is the 8th value of the 4th chunk of the 1st channel. (+1 for each index).
     AudioBuffer audio_buffer;
 
     std::vector<short int> chunk_index; // index for each channel, index[0] -> chunks[0]

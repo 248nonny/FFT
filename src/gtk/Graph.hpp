@@ -5,19 +5,34 @@
 #include <gtkmm/drawingarea.h>
 
 // max params for graphs.
-#define MAX_MAIN_LINE_COUNT 100
-#define MAX_SUB_LINE_COUNT 100
+const short int MAX_MAIN_LINE_COUNT = 100;
+const short int MAX_SUB_LINE_COUNT = 100;
+// #define MAX_MAIN_LINE_COUNT 100
+// #define MAX_SUB_LINE_COUNT 100
 
-#define MAX_DATAPOINTS 50
+const short int MAX_DATAPOINTS = 50;
+// #define MAX_DATAPOINTS 50
 
 // for pads
+enum class GraphPad
+{
+    PAD_TOP,
+    PAD_RIGHT,
+    PAD_BOTTOM,
+    PAD_LEFT
+};
+
+enum class AxisType
+{
+    LOG,
+    LINEAR
+};
+
 #define PAD_TOP 0
 #define PAD_RIGHT 1
 #define PAD_BOTTOM 2
 #define PAD_LEFT 3
 
-#define LOGARITHMIC 0
-#define LINEAR 1
 
 #define NUM_COLOURS 5
 
@@ -40,7 +55,7 @@ using GraphData = std::vector<GraphDataSet>;
 struct Grid {
     bool runbefore = false;
 
-    int x_type = LINEAR;
+    AxisType x_type = AxisType::LINEAR;
 
     int prev_width;
     int prev_height;

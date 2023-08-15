@@ -68,11 +68,11 @@ void Graph::find_trnfrm() {
     // for x:
     long double a,b;
 
-    if (grid.x_type == LOGARITHMIC) {
+    if (grid.x_type == AxisType::LOG) {
         a = (double)(grid.width - grid.pads[PAD_LEFT] - grid.pads[PAD_RIGHT]) / (log10(grid.xstop) - log10(grid.xstart));
         b = grid.pads[PAD_LEFT] - a * log10(grid.xstart);
         grid.trnfrm[0] = [a,b](double xval) {return a * log10(xval) + b;};
-    } else if (grid.x_type == LINEAR) {
+    } else if (grid.x_type == AxisType::LINEAR) {
         a = (double)(grid.width - grid.pads[PAD_LEFT] - grid.pads[PAD_RIGHT]) / (grid.xstop - grid.xstart);
         b = grid.pads[PAD_LEFT] - a * grid.xstart;
         grid.trnfrm[0] = [a,b](double xval) {return a * xval + b;};
@@ -92,7 +92,7 @@ void Graph::get_grid_lines() {
     grid.prev_width = grid.width;
 
 
-    if (grid.x_type == LOGARITHMIC) {
+    if (grid.x_type == AxisType::LOG) {
 
         // find main log x lines.
         float logdiff = log10((double)grid.xstop / (double)grid.xstart);
@@ -156,7 +156,7 @@ void Graph::get_grid_lines() {
             }
         }
 
-    } else if (grid.x_type == LINEAR) {
+    } else if (grid.x_type == AxisType::LINEAR) {
         // printf("gigo\n");
         int xdiff = grid.xstop - grid.xstart;
         grid.main_x_line_count = floor((float)xdiff/(float)grid.main_x_line_increment);

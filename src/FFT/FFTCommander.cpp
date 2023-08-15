@@ -30,7 +30,7 @@ FFTCommander::FFTCommander()
     for (int i = 0; i < WINDOW_COUNT; i++) {
         row = *window_menu_list->append();
         row[window_menu_cols.window_id] = i;
-        row[window_menu_cols.window_name] = window_names[i];
+        row[window_menu_cols.window_name] = WindowFunction::names[i];
     }
 
     DLOG(INFO) << "setting window function drop-down properties.";
@@ -42,8 +42,8 @@ FFTCommander::FFTCommander()
     window_function_menu.set_vexpand(false);
     window_function_menu.set_halign(Gtk::Align::CENTER);
 
-    window_function_menu.set_active(HANN);
-    window_type = HANN;
+    window_function_menu.set_active(WindowFunction::HANN);
+    window_type = WindowFunction::HANN;
 
     DLOG(INFO) << "connecting window function drop-down menu callback function.";
     window_function_menu.signal_changed().connect(sigc::mem_fun(*this, &FFTCommander::set_window_function_from_menu));
@@ -104,7 +104,7 @@ void FFTCommander::test_window_function(int array_size) {
     
 
     double y[array_size];
-    make_window_array(window_type, y, array_size);
+    WindowFunction::make_window_array(window_type, y, array_size);
     DLOG(INFO) << "writing test window values to output GraphDataSet.";
     for (int i = 0; i < array_size; i ++) {
         output.push_back({i * (1.00/ array_size), y[i] * 100});
